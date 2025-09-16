@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app-ci:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - MONGODB_URI=mongodb://mongodb-ci:27017/example_ci
+      - JWT_SECRET=ci-secret-key
+      - CI=true
+    depends_on:
+      - mongodb-ci
+    networks:
+      - ci-network
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    command: ["pnpm", "run", "test:cov"]
+
+  mongodb-ci:
+    image: mongo:7.0
+    ports:
+      - '27020:27017'
+    volumes:
+      - mongodb_ci_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=example_ci
+    networks:
+      - ci-network
+
+volumes:
+  mongodb_ci_data:
+
+networks:
+  ci-network:
+    driver: bridge

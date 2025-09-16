@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app-unit-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - MONGODB_URI=mongodb://mongodb-unit-test:27017/example_unit_test
+      - JWT_SECRET=test-secret-key
+    depends_on:
+      - mongodb-unit-test
+    networks:
+      - unit-test-network
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    command: ["pnpm", "run", "test"]
+
+  mongodb-unit-test:
+    image: mongo:7.0
+    ports:
+      - '27019:27017'
+    volumes:
+      - mongodb_unit_test_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=example_unit_test
+    networks:
+      - unit-test-network
+
+volumes:
+  mongodb_unit_test_data:
+
+networks:
+  unit-test-network:
+    driver: bridge
